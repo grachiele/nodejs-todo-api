@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb')
 const _ = require('lodash')
 const {authenticate} = require('./middleware/authenticate')
+const bcrypt = require('bcryptjs')
 
 const {mongoose} = require('./db/mongoose');
 const {Todo} = require('./models/todo');
@@ -124,6 +125,42 @@ app.post('/users', (req, res) => {
 app.get('/users/me', authenticate, (req, res) => {
   res.send(req.user);
 });
+
+// POST /users/login
+app.post('/users/login', (req, res) => {
+  let body = _.pick(req.body, ["email", "password"])
+
+  let email = body.email
+  let password = body.password
+
+  User.findByCredentials(email, password).then((user) => {
+    user.generateAuthToken().then((token) => {
+      res.header("x-auth", token).send(user);
+    })
+  }).catch((e) => {
+    res.status(400).send();
+  });
+
+  // User.findByCredentials(email, password).then(
+  //   res.send(user);
+  // ).catch((e) => {
+  //   res.status(400).send();
+  // });
+
+  // User.findOne({email}).then((user) => {
+  //   if (!user) {
+  //     return res.status(400).send();
+  //   }
+  //
+  //   bcrypt.compare(body.password, user.password, (err, result) => {
+  //      if (result) {
+  //        res.send(user)
+  //      }
+  //   });
+  // }).catch((e) => {
+  //   res.status(400).send();
+  // })
+})
 
 app.listen(port, () => {
   console.log(`Started on port ${port}`)

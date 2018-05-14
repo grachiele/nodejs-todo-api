@@ -33,16 +33,16 @@ var UserSchema = new mongoose.Schema({
 });
 
 UserSchema.methods.toJSON = function () {
-  var user = this;
-  var userObject = user.toObject();
+  let user = this;
+  let userObject = user.toObject();
 
   return _.pick(userObject, ['_id', 'email'])
 };
 
 UserSchema.methods.generateAuthToken = function (){
-  var user = this;
-  var access = 'auth'
-  var token = jwt.sign({_id: user._id.toHexString(), access}, "abc123").toString();
+  let user = this;
+  let access = 'auth'
+  let token = jwt.sign({_id: user._id.toHexString(), access}, "abc123").toString();
 
   user.tokens = user.tokens.concat({
     access,
@@ -53,6 +53,27 @@ UserSchema.methods.generateAuthToken = function (){
     return token;
   });
 };
+
+UserSchema.statics.findByToken = function (token){
+  let User = this;
+  let decoded;
+
+  try {
+    decoded = jwt.verify(token, 'abc123');
+  } catch (e) {
+    return Promise.reject();
+    // Same as below
+    // return new Promise((resolve, reject) => {
+    //   reject();
+    // });
+  }
+
+  return User.findOne({
+    '_id': decoded._id,
+    'tokens.token': token,
+    'tokens.access': 'auth'
+  });
+}
 
 var User = mongoose.model('User', UserSchema);
 

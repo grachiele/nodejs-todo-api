@@ -16,6 +16,7 @@ const port = process.env.PORT;
 
 app.use(bodyParser.json());
 
+// Public Routes
 // POST /todos
 app.post('/todos', (req, res) => {
   let todo = new Todo({

@@ -40,7 +40,7 @@ UserSchema.methods.toJSON = function () {
   return _.pick(userObject, ['_id', 'email'])
 };
 
-UserSchema.methods.generateAuthToken = function (){
+UserSchema.methods.generateAuthToken = function () {
   let user = this;
   let access = 'auth'
   let token = jwt.sign({_id: user._id.toHexString(), access}, "abc123").toString();
@@ -52,6 +52,15 @@ UserSchema.methods.generateAuthToken = function (){
 
   return user.save().then(() => {
     return token;
+  });
+};
+
+UserSchema.methods.removeToken = function (token) {
+  var user = this;
+  return user.update({
+    $pull: {
+      tokens: {token}
+    }
   });
 };
 
